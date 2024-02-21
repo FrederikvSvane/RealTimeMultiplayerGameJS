@@ -1,15 +1,112 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game</title>
+</head>
+<body>
     <span>index html</span>
+    <button id="createBtn">Create Game</button>
+    <button id="joinBtn">Join Game</button>
+    <input type="text" id="txtGameId" placeholder="Game ID">
+    <div id="divPlayers"></div>
+    <div id="divBoard"></div>
     <script> 
-    let clientId = null;
-    let ws = new WebSocket("ws://localhost:3000");
-    ws.onmessage = message => {
-        const response = JSON.parse(message.data);
-        if (response.type === "clientId") {
-            clientId = response.clientId;
-            console.log("Client ID set as " + clientId);
+        <!--Server bs-->
+        let clientId = null;
+        let gameId = null;
+        let playerColor = null;
+        let ws = new WebSocket("ws://localhost:3000");
+
+        const btnCreate = document.getElementById("createBtn");
+        const btnJoin = document.getElementById("joinBtn");
+        const txtGameId = document.getElementById("txtGameId");
+        const divPlayers = document.getElementById("divPlayers");
+        const divBoard = document.getElementById("divBoard");
+
+        btnCreate.addEventListener("click", e => {
+            const payLoad = {
+                "method": "create",
+                "clientId": clientId,
+            }
+            
+            ws.send(JSON.stringify(payLoad));
+        })
+
+        btnJoin.addEventListener("click", e => {
+            if(gameId === null){
+                gameId = txtGameId.value;
+            }
+
+            const payLoad = {
+                "method": "join",
+                "clientId": clientId,
+                "gameId": gameId
+            }
+
+            ws.send(JSON.stringify(payLoad));
+        })
+
+        ws.onmessage = message => {
+            const response = JSON.parse(message.data);
+            if (response.method === "connect") {
+                clientId = response.clientId;
+                console.log(`Client ID set with id: ${clientId}`);
+            } 
+            
+            if(response.method === "create") {
+                gameId = response.game.id;
+                console.log(`Game created with id: ${response.game.id} with balls: ${response.game.balls}`);
+            }
+
+            if(response.method === "join") {
+                const game = response.game;
+                while(divPlayers.firstChild){
+                        divPlayers.removeChild(divPlayers.firstChild);
+                }
+
+                game.clients.forEach(c => {
+                
+                    const d = document.createElement("div");
+                    d.style.width = "200px";
+                    d.style.background = c.color;
+                    d.textContent = c.clientId;
+                    divPlayers.appendChild(d);
+
+                    if (c.clientId === clientId) {
+                        playerColor = c.color;
+                    }
+
+                })
+
+                while(divBoard.firstChild){
+                    divBoard.removeChild(divBoard.firstChild);
+                }
+
+                for(let i = 0; i < game.balls; i++){
+                    const b = document.createElement("button");
+                    b.id = "ball" + i;
+                    b.tag = i + 1;
+                    b.textContent = "ball" + i;
+                    b.style.width = "100px";
+                    b.style.height = "100px";
+                    b.style.borderRadius = "50%";
+                    b.addEventListener("click", e => {
+                        b.style.background = playerColor;
+                        const payLoad = {
+                            "method": "ball",
+                            "clientId": clientId,
+                            "gameId": gameId,
+                            "ball": b.tag
+                        }
+                    })
+                    divBoard.appendChild(b);
+                }
+
+                console.log(`Game joined with id: ${response.game.id} with balls: ${response.game.balls}`);
+            }
         }
-    }
     </script>
+</body>
 </html>
