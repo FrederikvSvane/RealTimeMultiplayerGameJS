@@ -1,0 +1,15 @@
+<html>
+<head>
+    <span>index html</span>
+    <script> 
+    let clientId = null;
+    let ws = new WebSocket("ws://localhost:3000");
+    ws.onmessage = message => {
+        const response = JSON.parse(message.data);
+        if (response.type === "clientId") {
+            clientId = response.clientId;
+            console.log("Client ID set as " + clientId);
+        }
+    }
+    </script>
+</html>
