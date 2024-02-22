@@ -86,7 +86,7 @@
 
                 for(let i = 0; i < game.balls; i++){
                     const b = document.createElement("button");
-                    b.id = "ball" + i;
+                    b.id = "ball" + i + 1;
                     b.tag = i + 1;
                     b.textContent = "ball" + i;
                     b.style.width = "100px";
@@ -95,16 +95,28 @@
                     b.addEventListener("click", e => {
                         b.style.background = playerColor;
                         const payLoad = {
-                            "method": "ball",
+                            "method": "play",
                             "clientId": clientId,
                             "gameId": gameId,
-                            "ball": b.tag
+                            "ballId": b.id,
+                            "color": playerColor,
                         }
+                        ws.send(JSON.stringify(payLoad));
                     })
                     divBoard.appendChild(b);
                 }
 
                 console.log(`Game joined with id: ${response.game.id} with balls: ${response.game.balls}`);
+            }
+
+            if(response.method === "update") {
+                if(!response.game.state) return;
+                for(const b of Object.keys(response.game.state)){
+                    const color = response.game.state[b];
+                    console.log(b)
+                    const ball = document.getElementById(b);
+                    ball.style.background = color;
+                }
             }
         }
     </script>
