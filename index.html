@@ -6,7 +6,7 @@
     <title>Game</title>
 </head>
 <body>
-    <span>index html</span>
+    <h1 id="gameId">Welcome!</h1>
     <button id="createBtn">Create Game</button>
     <button id="joinBtn">Join Game</button>
     <input type="text" id="txtGameId" placeholder="Game ID">
@@ -24,6 +24,7 @@
         const txtGameId = document.getElementById("txtGameId");
         const divPlayers = document.getElementById("divPlayers");
         const divBoard = document.getElementById("divBoard");
+        const h1 = document.getElementById("gameId");
 
         btnCreate.addEventListener("click", e => {
             const payLoad = {
@@ -57,6 +58,7 @@
             
             if(response.method === "create") {
                 gameId = response.game.id;
+                h1.textContent = "Game ID: " + gameId;
                 console.log(`Game created with id: ${response.game.id} with balls: ${response.game.balls}`);
             }
 
@@ -105,7 +107,7 @@
                     })
                     divBoard.appendChild(b);
                 }
-
+                h1.textContent = "Game ID: " + response.game.id;
                 console.log(`Game joined with id: ${response.game.id} with balls: ${response.game.balls}`);
             }
 
